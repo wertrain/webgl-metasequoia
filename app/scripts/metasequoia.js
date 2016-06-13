@@ -200,8 +200,6 @@
             'vertex': vertexArray, 'face': faceArray
         }
     };
-    MQOPerser._parseObjectVertexParam = function(vertexParams) {
-    };
     var Metasequoia = function() {
         this.materialNum = 0;
         this.materials = [];
@@ -245,9 +243,19 @@
             this.objects[i] = MQOPerser.parseObjectParam(objectsMatch[i]);
         }
         for(let i = 0; i < this.objects.length; ++i) {
-            console.log(this.objects[i]);
+            let vertexArray = []
+            for (let j = 0; j < this.objects[i].vertex.length; ++j) {
+                Array.prototype.push.apply(vertexArray, this.objects[i].vertex[j]);
+            }
+            this.objects[i].vertexArray = vertexArray;
         }
         return true;
+    };
+    Metasequoia.prototype.getObject = function(index) {
+        return this.objects[index];
+    };
+    Metasequoia.prototype.getObjectCount = function(index) {
+        return this.objects.length;
     };
     webglmetasequoia.Metasequoia = Metasequoia;
 }());

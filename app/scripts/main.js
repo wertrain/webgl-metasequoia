@@ -10,6 +10,35 @@ var main = function() {
         
         var mqo = new webglmetasequoia.Metasequoia();
         mqo.initalize(responses[2]);
+        
+        var uniLocation = new Array();
+        uniLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
+        var attLocation = new Array();
+        attLocation[0] = gl.getAttribLocation(program, 'position');
+        var attStride = new Array();
+        attStride[0] = 3;
+        
+        var pvbo = sgl.createVBO(mqo.getObject(0).vertexArray);
+        gl.bindBuffer(gl.ARRAY_BUFFER, pvbo);
+        gl.enableVertexAttribArray(attLocation[0]);
+        gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
+        
+        var minMatrix = new matIV();
+        var mtxView = minMatrix.identity(minMatrix.create());
+        var mtxProj = minMatrix.identity(minMatrix.create());
+        var mtxMVP = minMatrix.identity(minMatrix.create());
+        var mtxTmp = minMatrix.identity(minMatrix.create());
+        var mtxModel = minMatrix.identity(minMatrix.create());
+        var mtxInv = minMatrix.identity(minMatrix.create());
+        
+        var vecLook = [0.0, 0.0, 16.0]
+        minMatrix.lookAt(vecLook, [0, 0, 0], [0, 1, 0], mtxView);
+        minMatrix.perspective(45, sgl.getWidth() / sgl.getHeight(), 0.1, 100, mtxProj);
+        minMatrix.multiply(mtxProj, mtxView, mtxTmp);
+        
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.enable(gl.CULL_FACE);
 
         (function() {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
