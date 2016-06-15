@@ -205,6 +205,7 @@
         this.materials = [];
         this.scene = null;
         this.objects = [];
+        this.groups = [];
     };
     Metasequoia.prototype.initalize = function(mqo) {
         var sceneMatch = mqo.match(/Scene \{[\s\S]+?\}/);
@@ -232,8 +233,7 @@
         for (let i = 0; i < this.materialNum; ++i) {
             this.materials[i] = MQOPerser.parseMaterialParam(materialParams[i]);
         }
-        // 以下の判定は怪しめ vertex, face の項目がないと（また、それ以上の項目があると）上手く拾えなくなる
-        var objectsMatch = mqo.match(/Object "(.+)" \{[\s\S]+?\}[\s\S]+?\}[\s\S]+?\}/g);
+        var objectsMatch = mqo.match(/Object "(.+)" \{[\s\S]+?[\n\r]\}/g);
         if (objectsMatch === null) {
             console.log('Object: not found.');
             return false;
@@ -242,17 +242,32 @@
         for (let i = 0; i < this.objects.length; ++i) {
             this.objects[i] = MQOPerser.parseObjectParam(objectsMatch[i]);
         }
+        
         for(let i = 0; i < this.objects.length; ++i) {
-            let vertexArray = []
-            for (let j = 0; j < this.objects[i].vertex.length; ++j) {
-                Array.prototype.push.apply(vertexArray, this.objects[i].vertex[j]);
+            for (let j = 0; j < this.objects[i].face.length; ++j) {
+                var vertexArray = [];
+                for (let k = 0; k < this.objects[i].face[j].V.length; ++k) {
+                    vertexArray.push(
+                        this.objects[i].vertex[
+                            this.objects[i].face[j].V[k]
+                        ]
+                    );
+                }
+                this.groups.push({ vertex: vertexArray });
             }
-            this.objects[i].vertexArray = vertexArray;
+            
         }
+        //console.log(this.groups);
         return true;
     };
     Metasequoia.prototype.getObject = function(index) {
         return this.objects[index];
+    };
+    Metasequoia.prototype.getGroup = function(index) {
+        return this.groups[index];
+    };
+    Metasequoia.prototype.getGroupLength = function() {
+        return this.groups.length;
     };
     Metasequoia.prototype.getObjectCount = function(index) {
         return this.objects.length;
