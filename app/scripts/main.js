@@ -8,7 +8,7 @@ var main = function() {
         var program = sgl.linkProgram(vs, fs);
 
         var mqo = new webglmetasequoia.Metasequoia();
-        mqo.initalize(responses[2]);
+        mqo.initalize(responses[3]);
 
         gl.useProgram(program);
         
@@ -32,8 +32,8 @@ var main = function() {
             0.0, 0.0, 1.0, 1.0
         ];
         var index = [
-            0, 0, 3,
-            1, 2, 3
+            0, 1, 3,
+            3, 2, 1
         ];
             
         var objects = [];
@@ -72,19 +72,19 @@ var main = function() {
         var mtxModel = minMatrix.identity(minMatrix.create());
         var mtxInv = minMatrix.identity(minMatrix.create());
         
-        var vecLook = [0.0, 140.0, 8.0]
-        minMatrix.lookAt(vecLook, [0, 0, 0], [0, 1, 0], mtxView);
-        minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 100, mtxProj);
+        var vecLook = [0.0, 140.0, 240.0]
+        minMatrix.lookAt(vecLook, [0, 130, 0], [0, 1, 0], mtxView);
+        minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 1000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
         
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
-        gl.enable(gl.CULL_FACE);
+        //gl.enable(gl.CULL_FACE);
         gl.frontFace(gl.CW);
         gl.cullFace(gl.FRONT);
 
         (function() {
-            gl.clearColor(0.0, 0.0, 255.0, 1.0);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clearDepth(1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
@@ -102,14 +102,14 @@ var main = function() {
                 if (objects[i].length === 3) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].v);
                     gl.enableVertexAttribArray(attLocation[0]);
-                    gl.vertexAttribPointer(attLocation[0], objects[i].length, gl.FLOAT, false, 0, 0);
+                    gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
                     gl.drawArrays(gl.TRIANGLES, 0, objects[i].length);
                 } else if (objects[i].length === 4) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].v);
                     gl.enableVertexAttribArray(attLocation[0]);
-                    gl.vertexAttribPointer(attLocation[0], objects[i].length, gl.FLOAT, false, 0, 0);
+                    gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-                    gl.drawElements(gl.TRIANGLES, 4, gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
                 }
             }
             gl.flush();

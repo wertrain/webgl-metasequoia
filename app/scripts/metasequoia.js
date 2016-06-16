@@ -2,25 +2,25 @@
     var MQOPerser = {};
 
     MQOPerser.parseSceneParam = function(scene) {
-        var posMatch = scene.match(/pos ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var posMatch = scene.match(/pos ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var posArray = new Array(3);
         posArray[0] = parseFloat(posMatch[1]);
         posArray[1] = parseFloat(posMatch[2]);
         posArray[2] = parseFloat(posMatch[3]);
-        var lookatMatch = scene.match(/lookat ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var lookatMatch = scene.match(/lookat ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var lookatArray = new Array(3);
         lookatArray[0] = parseFloat(lookatMatch[1]);
         lookatArray[1] = parseFloat(lookatMatch[2]);
         lookatArray[2] = parseFloat(lookatMatch[3]);
-        var headMatch = scene.match(/head ([-]?\d+\.\d+)/);
+        var headMatch = scene.match(/head ([+-]?[0-9]*[\.]?[0-9]+)/);
         var headValue = parseFloat(headMatch[1]);
-        var pichMatch = scene.match(/pich ([-]?\d+\.\d+)/);
+        var pichMatch = scene.match(/pich ([+-]?[0-9]*[\.]?[0-9]+)/);
         var pichValue = parseFloat(pichMatch[1]);
         var orthoMatch = scene.match(/ortho ([-]?\d+)/);
         var orthoValue = parseInt(orthoMatch[1]);
-        var zoomMatch = scene.match(/zoom2 ([-]?\d+\.\d+)/);
+        var zoomMatch = scene.match(/zoom2 ([+-]?[0-9]*[\.]?[0-9]+)/);
         var zoomValue = parseFloat(zoomMatch[1]);
-        var ambMatch = scene.match(/amb ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var ambMatch = scene.match(/amb ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var ambArray = new Array(3);
         ambArray[0] = parseFloat(ambMatch[1]);
         ambArray[1] = parseFloat(ambMatch[2]);
@@ -31,7 +31,7 @@
         }
     };
     MQOPerser.parseMaterial = function(material) {
-        return material.match(/\t".+" shader\(\d\) col\(\d+\.\d+ \d+\.\d+ \d+\.\d+ \d+\.\d+\) dif\(\d+\.\d+\) amb\(\d+\.\d+\) emi\(\d+\.\d+\) spc\(\d+\.\d+\) power\(\d+\.\d+\)(?: tex\(".+"\))*[\n\r]?/g);
+        return material.match(/\t".+" [\s\S]+?[\n\r]?/g);
     };
     MQOPerser.parseMaterialParam = function(materialLine) {
         var nameMatch = materialLine.match(/"(.+)"/);
@@ -90,7 +90,7 @@
         var facetMatch = object.match(/facet (\d+\.\d+)/);
         var facetValue = facetMatch === null ? null : parseFloat(facetMatch[1])
         
-        var colorMatch = object.match(/color ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var colorMatch = object.match(/color ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var colorArray = null;
         if (colorMatch !== null) {
             colorArray = new Array(3);
@@ -114,7 +114,7 @@
         var foldingMatch = object.match(/folding ([-]?\d+)/);
         var foldingValue = foldingMatch === null ? null : parseInt(foldingMatch[1]);
         
-        var scaleMatch = object.match(/scale ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var scaleMatch = object.match(/scale ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var scaleArray = null;
         if (scaleMatch !== null) {
             var scaleArray = new Array(3);
@@ -123,7 +123,7 @@
             scaleArray[2] = parseFloat(scaleMatch[3]);
         }
         
-        var rotationMatch = object.match(/rotation ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var rotationMatch = object.match(/rotation ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var rotationArray = null;
         if (rotationMatch !== null) {
             var rotationArray = new Array(3);
@@ -132,7 +132,7 @@
             rotationArray[2] = parseFloat(rotationMatch[3]);
         }
 
-        var translationMatch = object.match(/translation ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
+        var translationMatch = object.match(/translation ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
         var translationArray = null;
         if (translationMatch !== null) {
             var translationArray = new Array(3);
@@ -142,22 +142,25 @@
         }
         
         var vertexMatch = object.match(/vertex (\d+) \{[\s\S]+?\}/);
-        var vertexNum = parseInt(vertexMatch[1]);
-        var vertexParams = vertexMatch[0].match(/([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)[\n\r]/g);
-        var vertexArray = new Array(vertexParams.length);
-        for (let i = 0; i < vertexParams.length; ++i) {
-            let vertexParamMatch = vertexParams[i].match(/([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)/);
-            let vertex = new Array(3);
-            vertex[0] = vertexParamMatch[1];
-            vertex[1] = vertexParamMatch[2];
-            vertex[2] = vertexParamMatch[3];
-            vertexArray[i] = vertex;
+        var vertexArray = null;
+        if (vertexMatch !== null) {
+            var vertexNum = parseInt(vertexMatch[1]);
+            var vertexParams = vertexMatch[0].match(/([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)[\n\r]/g);
+            vertexArray = new Array(vertexParams.length);
+            for (let i = 0; i < vertexParams.length; ++i) {
+                let vertexParamMatch = vertexParams[i].match(/([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+                let vertex = new Array(3);
+                vertex[0] = vertexParamMatch[1];
+                vertex[1] = vertexParamMatch[2];
+                vertex[2] = vertexParamMatch[3];
+                vertexArray[i] = vertex;
+            }
         }
-        
+          
         var faceMatch = object.match(/face (\d+) \{[\s\S]+?\}/);
         var faceNum = parseInt(faceMatch[1]);
-
-        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\) M\(\d+\)(:? UV\([-]?\d+\.\d+(?: [-]?\d+\.\d+)*\))*[\n\r]/g);
+        console.log();
+        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\)(:? M\(\d+\))*(:? UV\([+-]?[0-9]*[\.]?[0-9]+(?: [+-]?[0-9]*[\.]?[0-9]+)*\))*[\n\r]/g);
         var faceArray = new Array(faceParams.length);
         for (let i = 0; i < faceParams.length; ++i) {
             let faceValueMatch = faceParams[i].match(/^\d+/);
@@ -174,12 +177,12 @@
                 vArray[j] = parseInt(faceVMatch[j + 1]);
             }
             let faceMMatch = faceParams[i].match(/M\((\d+)\)/);
-            let mValue = parseInt(faceMMatch[1]);
+            let mValue = faceMMatch === null ? null : parseInt(faceMMatch[1]);
             let uvReg = [
-                /UV\(([-]?\d+\.\d+) ([-]?\d+\.\d+)\)/,
-                /UV\(([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)\)/,
-                /UV\(([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)\)/,
-                /UV\(([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+) ([-]?\d+\.\d+)\)/,
+                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
+                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
+                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
+                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
             ];
             let faceUVMatch = faceParams[i].match(uvReg[faceValue-1]);
             let uvArray = null;
