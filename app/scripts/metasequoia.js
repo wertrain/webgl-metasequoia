@@ -2,25 +2,25 @@
     var MQOPerser = {};
 
     MQOPerser.parseSceneParam = function(scene) {
-        var posMatch = scene.match(/pos ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var posMatch = scene.match(/pos ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var posArray = new Array(3);
         posArray[0] = parseFloat(posMatch[1]);
         posArray[1] = parseFloat(posMatch[2]);
         posArray[2] = parseFloat(posMatch[3]);
-        var lookatMatch = scene.match(/lookat ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var lookatMatch = scene.match(/lookat ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var lookatArray = new Array(3);
         lookatArray[0] = parseFloat(lookatMatch[1]);
         lookatArray[1] = parseFloat(lookatMatch[2]);
         lookatArray[2] = parseFloat(lookatMatch[3]);
-        var headMatch = scene.match(/head ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var headMatch = scene.match(/head ([+-]?\d*[\.]?\d+)/);
         var headValue = parseFloat(headMatch[1]);
-        var pichMatch = scene.match(/pich ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var pichMatch = scene.match(/pich ([+-]?\d*[\.]?\d+)/);
         var pichValue = parseFloat(pichMatch[1]);
         var orthoMatch = scene.match(/ortho ([-]?\d+)/);
         var orthoValue = parseInt(orthoMatch[1]);
-        var zoomMatch = scene.match(/zoom2 ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var zoomMatch = scene.match(/zoom2 ([+-]?\d*[\.]?\d+)/);
         var zoomValue = parseFloat(zoomMatch[1]);
-        var ambMatch = scene.match(/amb ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var ambMatch = scene.match(/amb ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var ambArray = new Array(3);
         ambArray[0] = parseFloat(ambMatch[1]);
         ambArray[1] = parseFloat(ambMatch[2]);
@@ -29,9 +29,6 @@
             'pos': posArray, 'lookat': lookatArray, 'head': headValue, 
             'pich': pichValue, 'ortho': orthoValue, 'zoom2': zoomValue, 'amb': ambArray
         }
-    };
-    MQOPerser.parseMaterial = function(material) {
-        return material.match(/\t".+" [\s\S]+?[\n\r]?/g);
     };
     MQOPerser.parseMaterialParam = function(materialLine) {
         var nameMatch = materialLine.match(/"(.+)"/);
@@ -65,13 +62,13 @@
         var powerMatch = materialLine.match(/power\((\d+\.\d+)\)/);
         var powerValue = powerMatch === null ? null : parseFloat(powerMatch[1]);
         
-        var texMatch = materialLine.match(/tex\((".+")\)/);
+        var texMatch = materialLine.match(/tex\("(.+)"\)/);
         var texValue = (texMatch === null ? null : texMatch[1])
         
         return { 
             'name': materialName, 'shader': shaderNum, 'col': colArray, 
             'dif': difValue, 'amb': ambValue, 'emi': emiValue,
-            'spc': spcValue, 'power': powerValue, 'tex': texValue
+            'spc': spcValue, 'power': powerValue, 'tex': texValue, 'texObject': null
         }
     };
     MQOPerser.parseObjectParam = function(object) {
@@ -90,7 +87,7 @@
         var facetMatch = object.match(/facet (\d+\.\d+)/);
         var facetValue = facetMatch === null ? null : parseFloat(facetMatch[1])
         
-        var colorMatch = object.match(/color ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var colorMatch = object.match(/color ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var colorArray = null;
         if (colorMatch !== null) {
             colorArray = new Array(3);
@@ -114,7 +111,7 @@
         var foldingMatch = object.match(/folding ([-]?\d+)/);
         var foldingValue = foldingMatch === null ? null : parseInt(foldingMatch[1]);
         
-        var scaleMatch = object.match(/scale ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var scaleMatch = object.match(/scale ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var scaleArray = null;
         if (scaleMatch !== null) {
             var scaleArray = new Array(3);
@@ -123,7 +120,7 @@
             scaleArray[2] = parseFloat(scaleMatch[3]);
         }
         
-        var rotationMatch = object.match(/rotation ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var rotationMatch = object.match(/rotation ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var rotationArray = null;
         if (rotationMatch !== null) {
             var rotationArray = new Array(3);
@@ -132,7 +129,7 @@
             rotationArray[2] = parseFloat(rotationMatch[3]);
         }
 
-        var translationMatch = object.match(/translation ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+        var translationMatch = object.match(/translation ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var translationArray = null;
         if (translationMatch !== null) {
             var translationArray = new Array(3);
@@ -145,10 +142,10 @@
         var vertexArray = null;
         if (vertexMatch !== null) {
             var vertexNum = parseInt(vertexMatch[1]);
-            var vertexParams = vertexMatch[0].match(/([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)[\n\r]/g);
+            var vertexParams = vertexMatch[0].match(/([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)[\n\r]/g);
             vertexArray = new Array(vertexParams.length);
             for (let i = 0; i < vertexParams.length; ++i) {
-                let vertexParamMatch = vertexParams[i].match(/([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)/);
+                let vertexParamMatch = vertexParams[i].match(/([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
                 let vertex = new Array(3);
                 vertex[0] = vertexParamMatch[1];
                 vertex[1] = vertexParamMatch[2];
@@ -156,11 +153,11 @@
                 vertexArray[i] = vertex;
             }
         }
-          
+        
         var faceMatch = object.match(/face (\d+) \{[\s\S]+?\}/);
         var faceNum = parseInt(faceMatch[1]);
-        console.log();
-        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\)(:? M\(\d+\))*(:? UV\([+-]?[0-9]*[\.]?[0-9]+(?: [+-]?[0-9]*[\.]?[0-9]+)*\))*[\n\r]/g);
+        
+        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\)(:? M\(\d+\))*(:? UV\([+-]?\d*[\.]?\d+(?: [+-]?\d*[\.]?\d+)*\))*[\n\r]/g);
         var faceArray = new Array(faceParams.length);
         for (let i = 0; i < faceParams.length; ++i) {
             let faceValueMatch = faceParams[i].match(/^\d+/);
@@ -179,10 +176,10 @@
             let faceMMatch = faceParams[i].match(/M\((\d+)\)/);
             let mValue = faceMMatch === null ? null : parseInt(faceMMatch[1]);
             let uvReg = [
-                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
-                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
-                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
-                /UV\(([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+) ([+-]?[0-9]*[\.]?[0-9]+)\)/,
+                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
+                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
+                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
+                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
             ];
             let faceUVMatch = faceParams[i].match(uvReg[faceValue-1]);
             let uvArray = null;
@@ -204,13 +201,101 @@
         }
     };
     var Metasequoia = function() {
-        this.materialNum = 0;
         this.materials = [];
         this.scene = null;
         this.objects = [];
         this.groups = [];
     };
-    Metasequoia.prototype.initalize = function(mqo) {
+    Metasequoia.prototype.create = function(url) {
+        return new Promise((resolve, reject) => {
+            var directory = url.substring(0, url.lastIndexOf('/'));
+            this._loadMQO(url).then(mqo => {
+                if (!this._parseMQO(mqo)) {
+                    console.log('error: invalid model.');
+                    return Promise.reject(url);
+                }
+                var urls = [];
+                for (let i = 0; i < this.materials.length; ++i) {
+                    if (this.materials[i].tex !== null) {
+                        let url = (directory + '/' + this.materials[i].tex);
+                        this.materials[i].tex = url;
+                        urls.push(url)
+                    }
+                }
+                return this._loadTextures(urls);
+            })
+            .then(images => {
+                let index = 0;
+                for (let i = 0; i < this.materials.length; ++i) {
+                    if (this.materials[i].tex !== null) {
+                        this.materials[i].texObject = images[index++];
+                    }
+                }
+                this._createGroups();
+                resolve();
+            })
+            .catch(e => {
+                console.log('load error:' + e);
+                reject();
+            });
+        });
+    };
+    Metasequoia.prototype._loadMQO = function(url) {
+        return new Promise(function(resolve, reject){
+            var request = new XMLHttpRequest();
+            request.open('GET', url, true);
+            request.responseType = 'text';
+            request.onload = function(e) {
+                if (this.status == 200) {
+                    resolve(this.response);
+                } else {
+                    reject(url);
+                }
+            };
+            request.onerror = function(e) {
+                reject(url);
+            };
+            request.send(null);
+        });
+    };
+    Metasequoia.prototype._loadTextures = function(urls) {
+        return new Promise(function(resolve, reject){
+            var images = new Array(urls.length);
+            var collector = new XHRCollector(urls.length, resolve, reject, images);
+            for (var i = 0; i < urls.length; ++i) {
+                var request = new XMLHttpRequest();
+                request.index = i;
+                request.url = urls[i];
+                request.open('GET', urls[i], true);
+                request.responseType = 'blob';
+                request.onload = collector;
+                request.onerror = function(e) {
+                    reject(url);
+                };
+                
+                request.send(null);
+            }
+        });
+        function XHRCollector(allCount, resolve, reject, images) {
+            var count = 0;
+            return function(e) {
+                if (this.status == 200) {
+                    var image = new Image();
+                    image.onload = function(ee) {
+                        window.URL.revokeObjectURL(image.src);
+                        if (++count === allCount) {
+                            resolve(images);
+                        }
+                    };
+                    image.src = window.URL.createObjectURL(this.response);
+                    images[this.index] = image;
+                } else {
+                    reject(this.url);
+                }
+            }
+        }
+    };
+    Metasequoia.prototype._parseMQO = function(mqo) {
         var sceneMatch = mqo.match(/Scene \{[\s\S]+?\}/);
         if (sceneMatch === null) {
             console.log('Scene: not found.');
@@ -225,15 +310,16 @@
             return false;
         }
         var material = materialMatch[0];
-        this.materialNum = parseInt(materialMatch[1]);
+        var materialNum = parseInt(materialMatch[1]);
         
-        var materialParams = MQOPerser.parseMaterial(material);
-        if (materialParams.length !== this.materialNum) {
+        var materialParams = material.match(/\t".+" .+[\n\r]?/g);
+        if (materialParams.length !== materialNum) {
             console.log('Material: invalid data.' + materialParams.length);
             return false;
         }
-        this.materials = new Array(this.materialNum);
-        for (let i = 0; i < this.materialNum; ++i) {
+        this.materials = new Array(materialNum);
+        for (let i = 0; i < materialNum; ++i) {
+            
             this.materials[i] = MQOPerser.parseMaterialParam(materialParams[i]);
         }
         var objectsMatch = mqo.match(/Object "(.+)" \{[\s\S]+?[\n\r]\}/g);
@@ -245,7 +331,9 @@
         for (let i = 0; i < this.objects.length; ++i) {
             this.objects[i] = MQOPerser.parseObjectParam(objectsMatch[i]);
         }
-        
+        return true;
+    };
+    Metasequoia.prototype._createGroups = function(mqo) {
         for(let i = 0; i < this.objects.length; ++i) {
             for (let j = 0; j < this.objects[i].face.length; ++j) {
                 var vertexArray = [];
@@ -256,15 +344,31 @@
                         ]
                     );
                 }
-                this.groups.push({ vertex: vertexArray });
+                var uvArray = [];
+                if (this.objects[i].face[j].UV !== null) {
+                    for (let k = 0; k < this.objects[i].face[j].UV.length; ++k) {
+                        uvArray.push(this.objects[i].face[j].UV[k]);
+                    }
+                }
+                var materialId = this.objects[i].face[j].M;
+                this.groups.push({ 'vertex': vertexArray, 'uv': uvArray, 'materialId': materialId });
             }
-            
         }
+    };
+    Metasequoia.prototype.initalize = function(mqo) {
+        this._parseMQO(mqo);
+        this._createGroup();
         //console.log(this.groups);
         return true;
     };
-    Metasequoia.prototype.getObject = function(index) {
-        return this.objects[index];
+    Metasequoia.prototype.getMaterial = function(index) {
+        return this.materials[index];
+    };
+    Metasequoia.prototype.getMaterialLength = function() {
+        return this.materials.length;
+    };
+    Metasequoia.prototype.getGroupLength = function() {
+        return this.groups.length;
     };
     Metasequoia.prototype.getGroup = function(index) {
         return this.groups[index];
@@ -272,8 +376,8 @@
     Metasequoia.prototype.getGroupLength = function() {
         return this.groups.length;
     };
-    Metasequoia.prototype.getObjectCount = function(index) {
-        return this.objects.length;
+    Metasequoia.prototype.getVertexIndices = function() {
+        return [0, 1, 3, 3, 2, 1];
     };
     webglmetasequoia.Metasequoia = Metasequoia;
 }());

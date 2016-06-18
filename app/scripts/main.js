@@ -1,41 +1,39 @@
 var main = function() {
     var sgl = new webglmetasequoia.SimpleGL();
     sgl.initalize('canvas', 640, 480);
-    sgl.loadFiles(['shaders/vertex.vs', 'shaders/fragment.fs', 'models/isu.mqo', 'models/soldier/heisi.mqo'], function(responses) {
+    
+    var mqo = new webglmetasequoia.Metasequoia();
+    mqo.create('models/soldier/soldier.mqo').then(() => {
+        return sgl.loadFiles([
+            'shaders/vertex.vs',
+            'shaders/fragment.fs'
+        ]);
+    })
+    .then(responses => {
         var gl = sgl.getGL();
         var vs = sgl.compileShader(0, responses[0]);
         var fs = sgl.compileShader(1, responses[1]);
         var program = sgl.linkProgram(vs, fs);
-
-        var mqo = new webglmetasequoia.Metasequoia();
-        mqo.initalize(responses[3]);
-
-        gl.useProgram(program);
         
+        gl.useProgram(program);
         var uniLocation = new Array();
         uniLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
+        uniLocation[1] = gl.getUniformLocation(program, 'texture');
         var attLocation = new Array();
         attLocation[0] = gl.getAttribLocation(program, 'position');
         attLocation[1] = gl.getAttribLocation(program, 'color');
+        attLocation[2] = gl.getAttribLocation(program, 'textureCoord');
         var attStride = new Array();
         attStride[0] = 3;
         attStride[1] = 4;
+        attStride[2] = 2;
         
-        var position = [
-             0.0, 1.0, 0.0,
-             1.0, 0.0, 0.0,
-            -1.0, 0.0, 0.0
-        ];
-        var color = [
-            1.0, 0.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 0.0, 1.0, 1.0
-        ];
-        var index = [
-            0, 1, 3,
-            3, 2, 1
-        ];
-            
+        var materials = [];
+        for (let i = 0; i < mqo.getMaterialLength(); ++i) {
+            let material = mqo.getMaterial(i);
+            var texture = material.texObject === null ? null : sgl.createTexture(material.texObject);
+            materials.push({'texture': texture});
+        }
         var objects = [];
         for (let i = 0; i < mqo.getGroupLength(); ++i) {
             let group = mqo.getGroup(i);
@@ -43,25 +41,12 @@ var main = function() {
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(vertex, group.vertex[j]);
             }
-            //console.log(vertex);
-            //console.log(vertex.length);
             var pvbo = sgl.createVBO(vertex);
-            //gl.bindBuffer(gl.ARRAY_BUFFER, pvbo);
-            //gl.enableVertexAttribArray(attLocation[0]);
-            //gl.vertexAttribPointer(attLocation[0], group.vertex.length, gl.FLOAT, false, 0, 0);
-            objects.push({v: pvbo, length: group.vertex.length})
+            var tvbo = sgl.createVBO(group.uv);
+            var texture = materials[group.materialId].texture;
+            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture })
         }
-
-        //var pvbo = sgl.createVBO(mqo.getObject(0).vertexArray);
-        //var pvbo = sgl.createVBO(position);
-        //gl.bindBuffer(gl.ARRAY_BUFFER, pvbo);
-        //gl.enableVertexAttribArray(attLocation[0]);
-        //gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
-        //var cvbo = sgl.createVBO(color);
-        //gl.bindBuffer(gl.ARRAY_BUFFER, cvbo);
-        //gl.enableVertexAttribArray(attLocation[1]);
-        //gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
-        var ibo = sgl.createIBO(index);
+        var ibo = sgl.createIBO(mqo.getVertexIndices());
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
         
         var minMatrix = new matIV();
@@ -73,7 +58,7 @@ var main = function() {
         var mtxInv = minMatrix.identity(minMatrix.create());
         
         var vecLook = [0.0, 140.0, 240.0]
-        minMatrix.lookAt(vecLook, [0, 130, 0], [0, 1, 0], mtxView);
+        minMatrix.lookAt(vecLook, [0, 140, 0], [0, 1, 0], mtxView);
         minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 1000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
         
@@ -82,8 +67,11 @@ var main = function() {
         //gl.enable(gl.CULL_FACE);
         gl.frontFace(gl.CW);
         gl.cullFace(gl.FRONT);
-
+        
+        var count = 0;
         (function() {
+            var rad = (count++ % 360) * Math.PI / 180;
+            
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clearDepth(1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -93,12 +81,24 @@ var main = function() {
             var mtxRot = minMatrix.identity(minMatrix.create());
             minMatrix.identity(mtxTrans);
             minMatrix.identity(mtxRot);
+            
+            minMatrix.translate(mtxTrans, [0, 0, 0], mtxTrans);
+            minMatrix.rotate(mtxRot, rad, [0, 1, 0], mtxRot);
             minMatrix.multiply(mtxTrans, mtxRot, mtxModel);
             minMatrix.multiply(mtxTmp, mtxModel, mtxMVP);
             minMatrix.inverse(mtxModel, mtxInv);
             
             gl.uniformMatrix4fv(uniLocation[0], false, mtxMVP);
+            gl.uniform1i(uniLocation[1], 0);
+                
             for (let i = 0; i < objects.length; ++i) {
+                if (objects[i].texture !== null) {
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, objects[i].texture);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].uv);
+                    gl.enableVertexAttribArray(attLocation[2]);
+                    gl.vertexAttribPointer(attLocation[2], attStride[2], gl.FLOAT, false, 0, 0);
+                }
                 if (objects[i].length === 3) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].v);
                     gl.enableVertexAttribArray(attLocation[0]);
@@ -109,14 +109,14 @@ var main = function() {
                     gl.enableVertexAttribArray(attLocation[0]);
                     gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-                    gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+                    gl.drawElements(gl.TRIANGLES, mqo.getVertexIndices().length, gl.UNSIGNED_SHORT, 0);
                 }
             }
             gl.flush();
-            
-            //setTimeout(arguments.callee, 1000 / 30);
+            setTimeout(arguments.callee, 1000 / 30);
         })();
-    }, function(e) {
-        console.log('failed to load:' + e);
+    })
+    .catch((e) => {
+        console.log('error: ' + e);
     });
 }();

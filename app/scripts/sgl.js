@@ -34,7 +34,7 @@
         };
         request.send(null);
     };
-    SimpleGL.prototype.loadFiles = function(urls, successCallback, errorCallback) {
+    SimpleGL.prototype.loadFiles = function(urls) {
         function XHRCollector(allItemCount, cb, ecb, param) {
             var count = 0;
             return function(e) {
@@ -59,27 +59,29 @@
                     ecb(e.currentTarget.responseURL);
                 }
             }
-        }
-        var responses = new Array(urls.length);
-        var collector = new XHRCollector(urls.length, successCallback, errorCallback, responses);
-        for (var i = 0; i < urls.length; ++i) {
-            var request = new XMLHttpRequest();
-            request.index = i;
-            request.url = urls[i];
-            request.open('GET', urls[i], true);
-            switch (urls[i].split('.').pop().toLowerCase()) {
-                case 'jpg':
-                case 'png':
-                case 'gif':
-                    request.responseType = 'blob';
-                    break;
-                default:
-                    request.responseType = 'text';
-                    break;
+        };
+        return new Promise(function(resolve, reject){
+            var responses = new Array(urls.length);
+            var collector = new XHRCollector(urls.length, resolve, reject, responses);
+            for (var i = 0; i < urls.length; ++i) {
+                var request = new XMLHttpRequest();
+                request.index = i;
+                request.url = urls[i];
+                request.open('GET', urls[i], true);
+                switch (urls[i].split('.').pop().toLowerCase()) {
+                    case 'jpg':
+                    case 'png':
+                    case 'gif':
+                        request.responseType = 'blob';
+                        break;
+                    default:
+                        request.responseType = 'text';
+                        break;
+                }
+                request.onload = collector;
+                request.send(null);
             }
-            request.onload = collector;
-            request.send(null);
-        }
+        });
     };
     SimpleGL.prototype.compileShader = function(type, text) {
         var shader = null;
