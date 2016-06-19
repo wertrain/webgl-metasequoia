@@ -16,21 +16,28 @@ var main = function() {
         var program = sgl.linkProgram(vs, fs);
         
         gl.useProgram(program);
-        var uniLocation = new Array(4);
+        
+        var uniLocation = new Array(8);
         uniLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
         uniLocation[1] = gl.getUniformLocation(program, 'color');
         uniLocation[2] = gl.getUniformLocation(program, 'texture');
         uniLocation[3] = gl.getUniformLocation(program, 'hasTexture');
+        uniLocation[4] = gl.getUniformLocation(program, 'invMatrix');
+        uniLocation[5] = gl.getUniformLocation(program, 'lightDirection');
+        uniLocation[6] = gl.getUniformLocation(program, 'ambientColor');
+        uniLocation[7] = gl.getUniformLocation(program, 'eyeDirection');
+          
         var attLocation = new Array(3);
         attLocation[0] = gl.getAttribLocation(program, 'position');
         attLocation[1] = gl.getAttribLocation(program, 'color');
         attLocation[2] = gl.getAttribLocation(program, 'textureCoord');
-        var attStride = new Array(4);
+        attLocation[3] = gl.getAttribLocation(program, 'normal');
+        var attStride = new Array(5);
         attStride[0] = 3;
         attStride[1] = 4;
         attStride[2] = 2;
-        attStride[3] = 4;
-        
+        attStride[3] = 3;
+         
         var materials = [];
         for (let i = 0; i < mqo.getMaterialLength(); ++i) {
             let material = mqo.getMaterial(i);
@@ -45,6 +52,10 @@ var main = function() {
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(vertex, group.vertex[j]);
             }
+            let normal = [];
+            for (let j = 0; j < group.normal.length; ++j) {
+                Array.prototype.push.apply(normal, group.normal[j]);
+            }
             let color = [];
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(color,
@@ -54,7 +65,8 @@ var main = function() {
             let tvbo = sgl.createVBO(group.uv);
             let cvbo = sgl.createVBO(color);
             let texture = (group.materialId === -1 ? null : materials[group.materialId].texture);
-            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo });
+            let nvbo = sgl.createVBO(normal);
+            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo, 'n': nvbo});
         }
         var ibo = sgl.createIBO(mqo.getVertexIndices());
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
@@ -71,6 +83,10 @@ var main = function() {
         minMatrix.lookAt(vecLook, [0, 140, 0], [0, 1, 0], mtxView);
         minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 1000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
+
+        var lightDirection = [0, 100, -140];
+        var ambientColor = [0.1, 0.1, 0.1, 1.0];
+        var eyeDirection = vecLook;
         
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
@@ -99,11 +115,19 @@ var main = function() {
             minMatrix.inverse(mtxModel, mtxInv);
             
             gl.uniformMatrix4fv(uniLocation[0], false, mtxMVP);
-            
+            gl.uniformMatrix4fv(uniLocation[4], false, mtxInv);
+            gl.uniform3fv(uniLocation[5], lightDirection);
+            gl.uniform4fv(uniLocation[6], ambientColor);
+            gl.uniform3fv(uniLocation[7], eyeDirection);
+        
             for (let i = 0; i < objects.length; ++i) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].c);
                 gl.enableVertexAttribArray(attLocation[1]);
                 gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].n);
+                gl.enableVertexAttribArray(attLocation[3]);
+                gl.vertexAttribPointer(attLocation[3], attStride[3], gl.FLOAT, false, 0, 0);
                 
                 gl.uniform1i(uniLocation[3], objects[i].texture !== null);
                 if (objects[i].texture !== null) {

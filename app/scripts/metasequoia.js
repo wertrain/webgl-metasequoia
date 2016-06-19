@@ -87,13 +87,13 @@
         var nameMatch = object.match(/"(.+)"/);
         var objectName = nameMatch[1];
         
-        var visibleMatch = object.match(/visible ([-]?\d+)/);
+        var visibleMatch = object.match(/visible (\d+)/);
         var visibleValue = visibleMatch === null ? null : parseInt(visibleMatch[1]);
         
-        var lockingMatch = object.match(/locking ([-]?\d+)/);
+        var lockingMatch = object.match(/locking (\d+)/);
         var lockingValue = lockingMatch === null ? null : parseInt(lockingMatch[1]);
         
-        var shadingMatch = object.match(/shading ([-]?\d+)/);
+        var shadingMatch = object.match(/shading (\d+)/);
         var shadingValue = shadingMatch === null ? null : parseInt(shadingMatch[1]);
         
         var facetMatch = object.match(/facet (\d+\.\d+)/);
@@ -111,16 +111,16 @@
         var colorTypeMatch = object.match(/color_type ([-]?\d+)/);
         var colorTypeValue = colorTypeMatch === null ? null : parseInt(colorTypeMatch[1]);
         
-        var mirrorMatch = object.match(/mirror ([-]?\d+)/);
+        var mirrorMatch = object.match(/mirror (\d+)/);
         var mirrorValue = mirrorMatch === null ? null : parseInt(mirrorMatch[1]);
         
-        var mirrorAxisMatch = object.match(/mirror_axis ([-]?\d+)/);
+        var mirrorAxisMatch = object.match(/mirror_axis (\d+)/);
         var mirrorAxisValue = mirrorAxisMatch === null ? null : parseInt(mirrorAxisMatch[1]);
         
         var depthMatch = object.match(/depth ([-]?\d+)/);
         var depthValue = depthMatch === null ? null : parseInt(depthMatch[1]);
         
-        var foldingMatch = object.match(/folding ([-]?\d+)/);
+        var foldingMatch = object.match(/folding (\d+)/);
         var foldingValue = foldingMatch === null ? null : parseInt(foldingMatch[1]);
         
         var scaleMatch = object.match(/scale ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
@@ -183,7 +183,7 @@
                 vArray[j] = parseInt(vArray[j]);
             }
             // マテリアルのインデックス
-            let faceMMatch = faceParams[i].match(/M\((\d+)\)/);
+            let faceMMatch = faceParams[i].match(/M\(([-]?\d+)\)/);
             let mValue = faceMMatch === null ? null : parseInt(faceMMatch[1]);
             // テクスチャUV
             let uvReg = /UV\((.+?)\)/;
@@ -354,12 +354,53 @@
         return true;
     };
     Metasequoia.prototype._createGroups = function(mqo) {
+        // パースしたデータから、表示用にデータを展開する
         for(let i = 0; i < this.objects.length; ++i) {
+            // 法線リストの作成
+            var normalList = [];
             for (let j = 0; j < this.objects[i].face.length; ++j) {
                 var vertexArray = [];
                 for (let k = 0; k < this.objects[i].face[j].V.length; ++k) {
                     vertexArray.push(
                         this.objects[i].vertex[
+                            this.objects[i].face[j].V[k]
+                        ]
+                    );
+                }
+                var normal = [];
+                if (vertexArray.length === 3) {
+                    normal = this._getFaceNormal(vertexArray[0], vertexArray[1], vertexArray[2]);
+                } else if (vertexArray.length === 4) {
+                    normal = this._getFaceNormal(vertexArray[0], vertexArray[1], vertexArray[3]);
+                }
+                // 面法線リストに書き込み
+                for (let k = 0; k < this.objects[i].face[j].V.length; ++k) {
+                    if (typeof normalList[this.objects[i].face[j].V[k]] === 'undefined') {
+                        normalList[this.objects[i].face[j].V[k]] = normal;
+                    } else {
+                        normalList[this.objects[i].face[j].V[k]][0] += normal[0];
+                        normalList[this.objects[i].face[j].V[k]][1] += normal[1];
+                        normalList[this.objects[i].face[j].V[k]][2] += normal[2];
+                    }
+                }
+            }
+            // 面法線リストの法線を正規化し、頂点ごとの法線のリストとする
+            for (let j = 0; j < normalList.length; ++j) {
+                normalList[j] = this._getNormalizedVector(normalList[j]);
+            }
+            
+            // 頂点情報などの作成
+            for (let j = 0; j < this.objects[i].face.length; ++j) {
+                var vertexArray = [];
+                var normalArray = [];
+                for (let k = 0; k < this.objects[i].face[j].V.length; ++k) {
+                    vertexArray.push(
+                        this.objects[i].vertex[
+                            this.objects[i].face[j].V[k]
+                        ]
+                    );
+                    normalArray.push(
+                        normalList[
                             this.objects[i].face[j].V[k]
                         ]
                     );
@@ -371,7 +412,7 @@
                     }
                 }
                 var materialId = this.objects[i].face[j].M;
-                this.groups.push({ 'vertex': vertexArray, 'uv': uvArray, 'materialId': materialId });
+                this.groups.push({'name': this.objects[i].name, 'vertex': vertexArray, 'uv': uvArray, 'normal': normalArray, 'materialId': materialId});
             }
         }
     };
@@ -384,9 +425,6 @@
     Metasequoia.prototype.getMaterialLength = function() {
         return this.materials.length;
     };
-    Metasequoia.prototype.getGroupLength = function() {
-        return this.groups.length;
-    };
     Metasequoia.prototype.getGroup = function(index) {
         return this.groups[index];
     };
@@ -395,6 +433,26 @@
     };
     Metasequoia.prototype.getVertexIndices = function() {
         return [0, 1, 3, 3, 2, 1];
+    };
+    Metasequoia.prototype._getFaceNormal = function(v0, v1, v2) {
+        var normal = new Array(3);
+        // 頂点を結ぶベクトルを算出
+        var vec1 = [v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]];
+        var vec2 = [v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]];
+        // ベクトル同士の外積
+        normal[0] = vec1[1] * vec2[2] - vec1[2] * vec2[1];
+        normal[1] = vec1[2] * vec2[0] - vec1[0] * vec2[2];
+        normal[2] = vec1[0] * vec2[1] - vec1[1] * vec2[0];
+        return this._getNormalizedVector(normal);
+    };
+    Metasequoia.prototype._getNormalizedVector = function(v) {
+        var normalized = [];
+        var veclen = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        var m = (veclen === 0 ? 1.0 : 1.0 / veclen);
+        normalized[0] = v[0] * m;
+        normalized[1] = v[1] * m;
+        normalized[2] = v[2] * m;
+        return normalized;
     };
     webglmetasequoia.Metasequoia = Metasequoia;
 }());
