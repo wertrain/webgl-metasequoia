@@ -18,7 +18,9 @@ var main = function() {
         gl.useProgram(program);
         var uniLocation = new Array();
         uniLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
-        uniLocation[1] = gl.getUniformLocation(program, 'texture');
+        uniLocation[1] = gl.getUniformLocation(program, 'color');
+        uniLocation[2] = gl.getUniformLocation(program, 'texture');
+        uniLocation[3] = gl.getUniformLocation(program, 'hasTexture');
         var attLocation = new Array();
         attLocation[0] = gl.getAttribLocation(program, 'position');
         attLocation[1] = gl.getAttribLocation(program, 'color');
@@ -27,24 +29,32 @@ var main = function() {
         attStride[0] = 3;
         attStride[1] = 4;
         attStride[2] = 2;
+        attStride[3] = 4;
         
         var materials = [];
         for (let i = 0; i < mqo.getMaterialLength(); ++i) {
             let material = mqo.getMaterial(i);
-            var texture = material.texObject === null ? null : sgl.createTexture(material.texObject);
-            materials.push({'texture': texture});
+            let texture = material.texObject === null ? null : sgl.createTexture(material.texObject);
+            let color = material.col;
+            materials.push({'texture': texture, 'color': color});
         }
+        console.log(materials);
         var objects = [];
         for (let i = 0; i < mqo.getGroupLength(); ++i) {
             let group = mqo.getGroup(i);
-            var vertex = [];
+            let vertex = [];
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(vertex, group.vertex[j]);
             }
-            var pvbo = sgl.createVBO(vertex);
-            var tvbo = sgl.createVBO(group.uv);
-            var texture = materials[group.materialId].texture;
-            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture })
+            let color = [];
+            for (let j = 0; j < group.vertex.length; ++j) {
+                Array.prototype.push.apply(color, materials[group.materialId].color);
+            }
+            let pvbo = sgl.createVBO(vertex);
+            let tvbo = sgl.createVBO(group.uv);
+            let cvbo = sgl.createVBO(color);
+            let texture = materials[group.materialId].texture;
+            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo })
         }
         var ibo = sgl.createIBO(mqo.getVertexIndices());
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
@@ -72,7 +82,7 @@ var main = function() {
         (function() {
             var rad = (count++ % 360) * Math.PI / 180;
             
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearColor(0.0, 0.0, 255.0, 1.0);
             gl.clearDepth(1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
@@ -89,12 +99,18 @@ var main = function() {
             minMatrix.inverse(mtxModel, mtxInv);
             
             gl.uniformMatrix4fv(uniLocation[0], false, mtxMVP);
-            gl.uniform1i(uniLocation[1], 0);
-                
+            
             for (let i = 0; i < objects.length; ++i) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].c);
+                gl.enableVertexAttribArray(attLocation[1]);
+                gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
+                
+                gl.uniform1i(uniLocation[3], objects[i].texture !== null);
                 if (objects[i].texture !== null) {
+                    gl.uniform1i(uniLocation[3], true);
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, objects[i].texture);
+                    gl.uniform1i(uniLocation[2], 0);
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].uv);
                     gl.enableVertexAttribArray(attLocation[2]);
                     gl.vertexAttribPointer(attLocation[2], attStride[2], gl.FLOAT, false, 0, 0);
@@ -113,7 +129,7 @@ var main = function() {
                 }
             }
             gl.flush();
-            setTimeout(arguments.callee, 1000 / 30);
+            //setTimeout(arguments.callee, 1000 / 30);
         })();
     })
     .catch((e) => {

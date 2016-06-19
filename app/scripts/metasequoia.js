@@ -261,6 +261,10 @@
     Metasequoia.prototype._loadTextures = function(urls) {
         return new Promise(function(resolve, reject){
             var images = new Array(urls.length);
+            if (urls.length === 0) {
+                resolve(images);
+                return;
+            }
             var collector = new XHRCollector(urls.length, resolve, reject, images);
             for (var i = 0; i < urls.length; ++i) {
                 var request = new XMLHttpRequest();
@@ -355,10 +359,7 @@
             }
         }
     };
-    Metasequoia.prototype.initalize = function(mqo) {
-        this._parseMQO(mqo);
-        this._createGroup();
-        //console.log(this.groups);
+    Metasequoia.prototype.genaratePlainColorTexture = function(canvasId, color) {
         return true;
     };
     Metasequoia.prototype.getMaterial = function(index) {
