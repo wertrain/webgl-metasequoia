@@ -8,7 +8,7 @@
         this.canvas.width = width;
         this.canvas.height = height;
         
-        this.gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
         if (this.gl === null || typeof this.gl === 'undefined') {
             console.log('WebGL not supported.');
             return false;
@@ -58,8 +58,8 @@
                 } else {
                     ecb(e.currentTarget.responseURL);
                 }
-            }
-        };
+            };
+        }
         return new Promise(function(resolve, reject){
             var responses = new Array(urls.length);
             var collector = new XHRCollector(urls.length, resolve, reject, responses);
