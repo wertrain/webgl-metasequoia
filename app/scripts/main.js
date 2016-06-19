@@ -16,16 +16,16 @@ var main = function() {
         var program = sgl.linkProgram(vs, fs);
         
         gl.useProgram(program);
-        var uniLocation = new Array();
+        var uniLocation = new Array(4);
         uniLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
         uniLocation[1] = gl.getUniformLocation(program, 'color');
         uniLocation[2] = gl.getUniformLocation(program, 'texture');
         uniLocation[3] = gl.getUniformLocation(program, 'hasTexture');
-        var attLocation = new Array();
+        var attLocation = new Array(3);
         attLocation[0] = gl.getAttribLocation(program, 'position');
         attLocation[1] = gl.getAttribLocation(program, 'color');
         attLocation[2] = gl.getAttribLocation(program, 'textureCoord');
-        var attStride = new Array();
+        var attStride = new Array(4);
         attStride[0] = 3;
         attStride[1] = 4;
         attStride[2] = 2;
@@ -47,13 +47,14 @@ var main = function() {
             }
             let color = [];
             for (let j = 0; j < group.vertex.length; ++j) {
-                Array.prototype.push.apply(color, materials[group.materialId].color);
+                Array.prototype.push.apply(color,
+                    (group.materialId === -1 ? [1.0, 1.0, 1.0, 1.0] : materials[group.materialId].color));
             }
             let pvbo = sgl.createVBO(vertex);
             let tvbo = sgl.createVBO(group.uv);
             let cvbo = sgl.createVBO(color);
-            let texture = materials[group.materialId].texture;
-            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo })
+            let texture = (group.materialId === -1 ? null : materials[group.materialId].texture);
+            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo });
         }
         var ibo = sgl.createIBO(mqo.getVertexIndices());
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
@@ -66,7 +67,7 @@ var main = function() {
         var mtxModel = minMatrix.identity(minMatrix.create());
         var mtxInv = minMatrix.identity(minMatrix.create());
         
-        var vecLook = [0.0, 140.0, 240.0]
+        var vecLook = [0.0, 140.0, 240.0];
         minMatrix.lookAt(vecLook, [0, 140, 0], [0, 1, 0], mtxView);
         minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 1000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
