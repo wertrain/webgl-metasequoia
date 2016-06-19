@@ -28,7 +28,7 @@
         return { 
             'pos': posArray, 'lookat': lookatArray, 'head': headValue, 
             'pich': pichValue, 'ortho': orthoValue, 'zoom2': zoomValue, 'amb': ambArray
-        }
+        };
     };
     MQOPerser.parseMaterialParam = function(materialLine) {
         var nameMatch = materialLine.match(/"(.+)"/);
@@ -59,17 +59,29 @@
         var spcMatch = materialLine.match(/spc\((\d+\.\d+)\)/);
         var spcValue = spcMatch === null ? null : parseFloat(spcMatch[1]);
         
+        var reflectMatch = materialLine.match(/reflect\((\d+\.\d+)\)/);
+        var reflectValue = reflectMatch === null ? null : parseFloat(reflectMatch[1]);
+        
         var powerMatch = materialLine.match(/power\((\d+\.\d+)\)/);
         var powerValue = powerMatch === null ? null : parseFloat(powerMatch[1]);
         
         var texMatch = materialLine.match(/tex\("(.+)"\)/);
-        var texValue = (texMatch === null ? null : texMatch[1])
+        var texValue = (texMatch === null ? null : texMatch[1]);
+        
+        var aplaneMatch = materialLine.match(/aplane\("(.+)"\)/);
+        var aplaneValue = (aplaneMatch === null ? null : aplaneMatch[1]);
+        
+        var bumpMatch = materialLine.match(/bump\("(.+)"\)/);
+        var bumpValue = (bumpMatch === null ? null : bumpMatch[1]);
         
         return { 
             'name': materialName, 'shader': shaderNum, 'col': colArray, 
             'dif': difValue, 'amb': ambValue, 'emi': emiValue,
-            'spc': spcValue, 'power': powerValue, 'tex': texValue, 'texObject': null
-        }
+            'spc': spcValue, 'power': powerValue, 'reflect': reflectValue,
+            'tex': texValue, 'texObject': null,
+            'aplane': aplaneValue, 'aplaneTexObject': null,
+            'bump': bumpValue, 'bumpTexObject': null
+        };
     };
     MQOPerser.parseObjectParam = function(object) {
         var nameMatch = object.match(/"(.+)"/);
@@ -85,7 +97,7 @@
         var shadingValue = shadingMatch === null ? null : parseInt(shadingMatch[1]);
         
         var facetMatch = object.match(/facet (\d+\.\d+)/);
-        var facetValue = facetMatch === null ? null : parseFloat(facetMatch[1])
+        var facetValue = facetMatch === null ? null : parseFloat(facetMatch[1]);
         
         var colorMatch = object.match(/color ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var colorArray = null;
@@ -114,7 +126,7 @@
         var scaleMatch = object.match(/scale ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var scaleArray = null;
         if (scaleMatch !== null) {
-            var scaleArray = new Array(3);
+            scaleArray = new Array(3);
             scaleArray[0] = parseFloat(scaleMatch[1]);
             scaleArray[1] = parseFloat(scaleMatch[2]);
             scaleArray[2] = parseFloat(scaleMatch[3]);
@@ -123,7 +135,7 @@
         var rotationMatch = object.match(/rotation ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var rotationArray = null;
         if (rotationMatch !== null) {
-            var rotationArray = new Array(3);
+            rotationArray = new Array(3);
             rotationArray[0] = parseFloat(rotationMatch[1]);
             rotationArray[1] = parseFloat(rotationMatch[2]);
             rotationArray[2] = parseFloat(rotationMatch[3]);
@@ -132,7 +144,7 @@
         var translationMatch = object.match(/translation ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)/);
         var translationArray = null;
         if (translationMatch !== null) {
-            var translationArray = new Array(3);
+            translationArray = new Array(3);
             translationArray[0] = parseFloat(translationMatch[1]);
             translationArray[1] = parseFloat(translationMatch[2]);
             translationArray[2] = parseFloat(translationMatch[3]);
@@ -157,39 +169,43 @@
         var faceMatch = object.match(/face (\d+) \{[\s\S]+?\}/);
         var faceNum = parseInt(faceMatch[1]);
         
-        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\)(:? M\(\d+\))*(:? UV\([+-]?\d*[\.]?\d+(?: [+-]?\d*[\.]?\d+)*\))*[\n\r]/g);
+        var faceParams = faceMatch[0].match(/\d+ V\(\d+(?: \d+)*\).+[\n\r]?/g);
         var faceArray = new Array(faceParams.length);
         for (let i = 0; i < faceParams.length; ++i) {
+            // 頂点数
             let faceValueMatch = faceParams[i].match(/^\d+/);
             let faceValue = parseInt(faceValueMatch[0]);
-            let vReg = [
-                /V\((\d+)\)/,
-                /V\((\d+) (\d+)\)/,
-                /V\((\d+) (\d+) (\d+)\)/,
-                /V\((\d+) (\d+) (\d+) (\d+)\)/,
-            ];
-            let faceVMatch = faceParams[i].match(vReg[faceValue-1]);
-            let vArray = new Array(faceVMatch.length - 1);
+            // 頂点のインデックス
+            let vReg = /V\((.+?)\)/;
+            let faceVMatch = faceParams[i].match(vReg);
+            let vArray = faceVMatch[1].split(' ');
             for (let j = 0; j < vArray.length; ++j) {
-                vArray[j] = parseInt(faceVMatch[j + 1]);
+                vArray[j] = parseInt(vArray[j]);
             }
+            // マテリアルのインデックス
             let faceMMatch = faceParams[i].match(/M\((\d+)\)/);
             let mValue = faceMMatch === null ? null : parseInt(faceMMatch[1]);
-            let uvReg = [
-                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
-                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
-                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
-                /UV\(([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+) ([+-]?\d*[\.]?\d+)\)/,
-            ];
-            let faceUVMatch = faceParams[i].match(uvReg[faceValue-1]);
+            // テクスチャUV
+            let uvReg = /UV\((.+?)\)/;
+            let faceUVMatch = faceParams[i].match(uvReg);
             let uvArray = null;
             if (faceUVMatch !== null) {
-                uvArray = new Array(faceValue * 2);
+                uvArray = faceUVMatch[1].split(' ');
                 for (let j = 0; j < uvArray.length; ++j) {
-                    uvArray[j] = parseFloat(faceUVMatch[j + 1]);
+                    uvArray[j] = parseFloat(uvArray[j]);
                 }
             }
-            faceArray[i] = {'value': faceValue, 'V': vArray, 'M': mValue, 'UV': uvArray};
+            // 頂点カラー
+            let colReg = /COL\((.+?)\)/;
+            let colArray = null;
+            let faceCOLMatch = faceParams[i].match(colReg);
+            if (faceCOLMatch !== null) {
+                colArray = faceCOLMatch[1].split(' ');
+                for (let j = 0; j < colArray.length; ++j) {
+                    colArray[j] = parseFloat(colArray[j]);
+                }
+            }
+            faceArray[i] = {'value': faceValue, 'V': vArray, 'M': mValue, 'UV': uvArray, 'COL': colArray};
         }
         return {
             'name': objectName, 'visible': visibleValue, 'locking': lockingValue,
@@ -198,7 +214,7 @@
             'shading': shadingValue, 'facet': facetValue, 'color': colorArray,
             'color_type': colorTypeValue, 'mirror': mirrorValue, 'mirror_axis': mirrorAxisValue,
             'vertex': vertexArray, 'face': faceArray
-        }
+        };
     };
     var Metasequoia = function() {
         this.materials = [];
@@ -219,7 +235,7 @@
                     if (this.materials[i].tex !== null) {
                         let url = (directory + '/' + this.materials[i].tex);
                         this.materials[i].tex = url;
-                        urls.push(url)
+                        urls.push(url);
                     }
                 }
                 return this._loadTextures(urls);
@@ -273,10 +289,11 @@
                 request.open('GET', urls[i], true);
                 request.responseType = 'blob';
                 request.onload = collector;
-                request.onerror = function(e) {
-                    reject(url);
-                };
-                
+                (function(url) {
+                    request.onerror = function(e) {
+                        reject(url);
+                    };
+                })(urls[i]);
                 request.send(null);
             }
         });
@@ -296,7 +313,7 @@
                 } else {
                     reject(this.url);
                 }
-            }
+            };
         }
     };
     Metasequoia.prototype._parseMQO = function(mqo) {
@@ -323,7 +340,6 @@
         }
         this.materials = new Array(materialNum);
         for (let i = 0; i < materialNum; ++i) {
-            
             this.materials[i] = MQOPerser.parseMaterialParam(materialParams[i]);
         }
         var objectsMatch = mqo.match(/Object "(.+)" \{[\s\S]+?[\n\r]\}/g);

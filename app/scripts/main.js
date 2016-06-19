@@ -38,7 +38,6 @@ var main = function() {
             let color = material.col;
             materials.push({'texture': texture, 'color': color});
         }
-        console.log(materials);
         var objects = [];
         for (let i = 0; i < mqo.getGroupLength(); ++i) {
             let group = mqo.getGroup(i);
