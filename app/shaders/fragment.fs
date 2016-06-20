@@ -1,5 +1,6 @@
 precision mediump float;
 
+uniform bool hasTexture;
 uniform sampler2D texture;
 uniform mat4 invMatrix;
 uniform vec3 lightDirection;
@@ -10,7 +11,10 @@ varying vec4 vColor;
 varying vec2 vTextureCoord;
 
 void main(void){
-    vec4  smpColor  = texture2D(texture, vTextureCoord);
+    vec4 smpColor = vec4(1.0);
+    if (hasTexture) {
+        smpColor = texture2D(texture, vTextureCoord);
+    }
     vec3  invLight  = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
     vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
     vec3  halfLE    = normalize(invLight + invEye);

@@ -419,6 +419,9 @@
     Metasequoia.prototype.genaratePlainColorTexture = function(canvasId, color) {
         return true;
     };
+    Metasequoia.prototype.getScene = function() {
+        return this.scene;
+    };
     Metasequoia.prototype.getMaterial = function(index) {
         return this.materials[index];
     };

@@ -79,13 +79,16 @@ var main = function() {
         var mtxModel = minMatrix.identity(minMatrix.create());
         var mtxInv = minMatrix.identity(minMatrix.create());
         
-        var vecLook = [0.0, 140.0, 240.0];
+        //var vecLook = mqo.getScene().pos;
+        //minMatrix.lookAt(vecLook, mqo.getScene().lookat, [0, 1, 0], mtxView);
+        var vecLook = [0.0, 140.0, 240.0]
         minMatrix.lookAt(vecLook, [0, 140, 0], [0, 1, 0], mtxView);
-        minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 1000, mtxProj);
+        minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 10000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
 
+        var ambient = mqo.getScene().amb;
         var lightDirection = [0, 100, -140];
-        var ambientColor = [0.1, 0.1, 0.1, 1.0];
+        var ambientColor = [ambient[0], ambient[1], ambient[2], 1.0];
         var eyeDirection = vecLook;
         
         gl.enable(gl.DEPTH_TEST);
@@ -129,15 +132,16 @@ var main = function() {
                 gl.enableVertexAttribArray(attLocation[3]);
                 gl.vertexAttribPointer(attLocation[3], attStride[3], gl.FLOAT, false, 0, 0);
                 
-                gl.uniform1i(uniLocation[3], objects[i].texture !== null);
                 if (objects[i].texture !== null) {
+                    gl.uniform1i(uniLocation[2], 0);
                     gl.uniform1i(uniLocation[3], true);
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, objects[i].texture);
-                    gl.uniform1i(uniLocation[2], 0);
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].uv);
                     gl.enableVertexAttribArray(attLocation[2]);
                     gl.vertexAttribPointer(attLocation[2], attStride[2], gl.FLOAT, false, 0, 0);
+                } else {
+                    gl.uniform1i(uniLocation[3], false);
                 }
                 if (objects[i].length === 3) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].v);
