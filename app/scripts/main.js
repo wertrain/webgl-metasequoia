@@ -32,12 +32,14 @@ var main = function() {
         attLocation[1] = gl.getAttribLocation(program, 'color');
         attLocation[2] = gl.getAttribLocation(program, 'textureCoord');
         attLocation[3] = gl.getAttribLocation(program, 'normal');
+        attLocation[4] = gl.getAttribLocation(program, 'materialColor');
         var attStride = new Array(5);
         attStride[0] = 3;
         attStride[1] = 4;
         attStride[2] = 2;
         attStride[3] = 3;
-         
+        attStride[4] = 4;
+        
         var materials = [];
         for (let i = 0; i < mqo.getMaterialLength(); ++i) {
             let material = mqo.getMaterial(i);
@@ -56,17 +58,22 @@ var main = function() {
             for (let j = 0; j < group.normal.length; ++j) {
                 Array.prototype.push.apply(normal, group.normal[j]);
             }
-            let color = [];
+            let vertexColor = [];
             for (let j = 0; j < group.vertex.length; ++j) {
-                Array.prototype.push.apply(color,
-                    (group.materialId === -1 ? [1.0, 1.0, 1.0, 1.0] : materials[group.materialId].color));
+                Array.prototype.push.apply(vertexColor, [1.0, 1.0, 1.0, 0.0]);
+            }
+            let materialColor = [];
+            for (let j = 0; j < group.vertex.length; ++j) {
+                Array.prototype.push.apply(materialColor,
+                    (group.materialId === -1 ? [1.0, 1.0, 1.0, 0.0] : materials[group.materialId].color));
             }
             let pvbo = sgl.createVBO(vertex);
             let tvbo = sgl.createVBO(group.uv);
-            let cvbo = sgl.createVBO(color);
+            let cvbo = sgl.createVBO(vertexColor);
+            let mvbo = sgl.createVBO(materialColor);
             let texture = (group.materialId === -1 ? null : materials[group.materialId].texture);
             let nvbo = sgl.createVBO(normal);
-            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo, 'n': nvbo});
+            objects.push({'v': pvbo, 'length': group.vertex.length, 'uv': tvbo, 'texture': texture, 'c': cvbo, 'mc': mvbo, 'n': nvbo});
         }
         var ibo = sgl.createIBO(mqo.getVertexIndices());
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
@@ -122,7 +129,7 @@ var main = function() {
             gl.uniform3fv(uniLocation[5], lightDirection);
             gl.uniform4fv(uniLocation[6], ambientColor);
             gl.uniform3fv(uniLocation[7], eyeDirection);
-        
+
             for (let i = 0; i < objects.length; ++i) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].c);
                 gl.enableVertexAttribArray(attLocation[1]);
@@ -131,6 +138,10 @@ var main = function() {
                 gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].n);
                 gl.enableVertexAttribArray(attLocation[3]);
                 gl.vertexAttribPointer(attLocation[3], attStride[3], gl.FLOAT, false, 0, 0);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, objects[i].mc);
+                gl.enableVertexAttribArray(attLocation[4]);
+                gl.vertexAttribPointer(attLocation[4], attStride[4], gl.FLOAT, false, 0, 0);
                 
                 if (objects[i].texture !== null) {
                     gl.uniform1i(uniLocation[2], 0);

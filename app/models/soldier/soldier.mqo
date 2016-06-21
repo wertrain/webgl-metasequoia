@@ -13,7 +13,7 @@ Scene {
 Material 5 {
 	"face" shader(3) col(1.000 1.000 1.000 1.000) dif(0.000) amb(0.600) emi(1.000) spc(0.000) power(5.00) tex("face_ao.png")
 	"body" shader(3) col(1.000 1.000 1.000 1.000) dif(0.000) amb(0.600) emi(1.000) spc(0.000) power(5.00) tex("body_sensi.png")
-	"mant" shader(3) col(0.200 0.100 0.000 1.000) dif(0.000) amb(0.600) emi(1.000) spc(0.000) power(5.00)
+	"mant" shader(3) col(0.300 0.050 0.010 1.000) dif(0.000) amb(0.600) emi(1.000) spc(0.000) power(5.00)
 	"bone" shader(3) col(1.000 0.000 0.133 0.500) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00)
 	"anchor" shader(3) col(0.337 0.341 1.000 0.500) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00)
 }
