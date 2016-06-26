@@ -405,14 +405,27 @@
                         ]
                     );
                 }
-                var uvArray = [];
+                var uvArray = null;
                 if (this.objects[i].face[j].UV !== null) {
+                    uvArray = [];
                     for (let k = 0; k < this.objects[i].face[j].UV.length; ++k) {
                         uvArray.push(this.objects[i].face[j].UV[k]);
                     }
                 }
+                var colArray = null;
+                if (this.objects[i].face[j].COL !== null) {
+                    colArray = [];
+                    for (let k = 0; k < this.objects[i].face[j].COL.length; ++k) {
+                        let color = this.objects[i].face[j].COL[k];
+                        let r = (color & 0x000000FF) >>   0;
+                        let g = (color & 0x0000FF00) >>   8;
+                        let b = (color & 0x00FF0000) >>  16;
+                        let a = (color & 0xFF000000) >>> 24; // 符号なし右シフト
+                        colArray.push([r, g, b, a]);
+                    }
+                }
                 var materialId = this.objects[i].face[j].M;
-                this.groups.push({'name': this.objects[i].name, 'vertex': vertexArray, 'uv': uvArray, 'normal': normalArray, 'materialId': materialId});
+                this.groups.push({'name': this.objects[i].name, 'vertex': vertexArray, 'uv': uvArray, 'normal': normalArray, 'color':colArray, 'materialId': materialId});
             }
         }
     };

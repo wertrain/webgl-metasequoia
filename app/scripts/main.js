@@ -60,15 +60,17 @@ var main = function() {
             }
             let vertexColor = [];
             for (let j = 0; j < group.vertex.length; ++j) {
-                Array.prototype.push.apply(vertexColor, [1.0, 1.0, 1.0, 0.0]);
+                Array.prototype.push.apply(vertexColor, 
+                    (group.color === null ? [1.0, 1.0, 1.0, 1.0] : group.color[j]));
             }
             let materialColor = [];
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(materialColor,
                     (group.materialId === -1 ? [1.0, 1.0, 1.0, 0.0] : materials[group.materialId].color));
             }
+            let textureUV = group.uv;
             let pvbo = sgl.createVBO(vertex);
-            let tvbo = sgl.createVBO(group.uv);
+            let tvbo = (textureUV === null) ? null : sgl.createVBO(textureUV);
             let cvbo = sgl.createVBO(vertexColor);
             let mvbo = sgl.createVBO(materialColor);
             let texture = (group.materialId === -1 ? null : materials[group.materialId].texture);
@@ -88,9 +90,9 @@ var main = function() {
         
         //var vecLook = mqo.getScene().pos;
         //minMatrix.lookAt(vecLook, mqo.getScene().lookat, [0, 1, 0], mtxView);
-        var vecLook = [0.0, 140.0, 240.0]
-        minMatrix.lookAt(vecLook, [0, 140, 0], [0, 1, 0], mtxView);
-        minMatrix.perspective(90, sgl.getWidth() / sgl.getHeight(), 0.1, 10000, mtxProj);
+        var vecLook = [0.0, 130.0, 450.0]
+        minMatrix.lookAt(vecLook, [0, 130, 0], [0, 1, 0], mtxView);
+        minMatrix.perspective(45, sgl.getWidth() / sgl.getHeight(), 0.1, 10000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
 
         var ambient = mqo.getScene().amb;
