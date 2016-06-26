@@ -61,7 +61,7 @@ var main = function() {
             let vertexColor = [];
             for (let j = 0; j < group.vertex.length; ++j) {
                 Array.prototype.push.apply(vertexColor, 
-                    (group.color === null ? [1.0, 1.0, 1.0, 1.0] : group.color[j]));
+                    (group.color === null ? [1.0, 1.0, 1.0, 0.0] : group.color[j]));
             }
             let materialColor = [];
             for (let j = 0; j < group.vertex.length; ++j) {
@@ -69,8 +69,9 @@ var main = function() {
                     (group.materialId === -1 ? [1.0, 1.0, 1.0, 0.0] : materials[group.materialId].color));
             }
             let textureUV = group.uv;
+            
             let pvbo = sgl.createVBO(vertex);
-            let tvbo = (textureUV === null) ? null : sgl.createVBO(textureUV);
+            let tvbo = sgl.createVBO(textureUV);
             let cvbo = sgl.createVBO(vertexColor);
             let mvbo = sgl.createVBO(materialColor);
             let texture = (group.materialId === -1 ? null : materials[group.materialId].texture);

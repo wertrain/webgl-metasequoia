@@ -405,9 +405,8 @@
                         ]
                     );
                 }
-                var uvArray = null;
+                var uvArray = [];
                 if (this.objects[i].face[j].UV !== null) {
-                    uvArray = [];
                     for (let k = 0; k < this.objects[i].face[j].UV.length; ++k) {
                         uvArray.push(this.objects[i].face[j].UV[k]);
                     }
