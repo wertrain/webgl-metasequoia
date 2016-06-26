@@ -171,7 +171,7 @@ var main = function() {
                 }
             }
             gl.flush();
-            //setTimeout(arguments.callee, 1000 / 30);
+            setTimeout(arguments.callee, 1000 / 30);
         })();
     })
     .catch((e) => {

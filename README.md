@@ -6,6 +6,10 @@ mqo ファイルを読み込んでモデルを表示します。
 ![Screenshot](https://github.com/wertrain/webgl-metasequoia/blob/master/screenshot/00.png)  
 元素材：光陰像型 [http://www.geocities.jp/lab_no2/](http://www.geocities.jp/lab_no2/)
 
+## Demo
+
+[http://wertrain.github.io/demo/webgl-metasequoia/](http://wertrain.github.io/demo/webgl-metasequoia/)
+
 ## Execute
 
 Install plugins
