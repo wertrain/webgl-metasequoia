@@ -91,7 +91,7 @@ var main = function() {
         
         //var vecLook = mqo.getScene().pos;
         //minMatrix.lookAt(vecLook, mqo.getScene().lookat, [0, 1, 0], mtxView);
-        var vecLook = [0.0, 130.0, 450.0]
+        var vecLook = [0.0, 130.0, 450.0];
         minMatrix.lookAt(vecLook, [0, 130, 0], [0, 1, 0], mtxView);
         minMatrix.perspective(45, sgl.getWidth() / sgl.getHeight(), 0.1, 10000, mtxProj);
         minMatrix.multiply(mtxProj, mtxView, mtxTmp);
