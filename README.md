@@ -8,7 +8,7 @@ mqo ファイルを読み込んでモデルを表示します。
 
 ## Demo
 
-[http://wertrain.github.io/demo/webgl-metasequoia/](http://wertrain.github.io/demo/webgl-metasequoia/)
+[http://wertrain.github.io/webgl-metasequoia/](http://wertrain.github.io/webgl-metasequoia/)
 
 ## Execute
 
